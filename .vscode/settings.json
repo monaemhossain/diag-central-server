@@ -18,5 +18,8 @@
         "titleBar.inactiveBackground": "#b3620d99",
         "titleBar.inactiveForeground": "#e7e7e799"
     },
-    "peacock.color": "#b3620d"
+    "peacock.color": "#b3620d",
+    "cSpell.words": [
+        "hesu"
+    ]
 }

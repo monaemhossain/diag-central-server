@@ -1,7 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 require('dotenv').config()
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 
 
 
@@ -28,8 +28,21 @@ const client = new MongoClient(uri, {
 client.db("admin").command({ ping: 1 });
 console.log("Pinged your deployment. You successfully connected to MongoDB!");
 
-
-
+const userCollection = client.db('usersDB').collection('users');
+// Create user
+app.post('/users', async (req, res) => {
+    const newUser = req.body;
+    console.log(newUser);
+    const result = await userCollection.insertOne(newUser);
+    res.send(result);
+})
+// Read user data
+app.get('/users', async (req, res) => {
+    const cursor = userCollection.find();
+    const result = await cursor.toArray();
+    res.send(result);
+})
+const testCollection = client.db('testsDB').collection('tests');
 
 
 
