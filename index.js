@@ -119,7 +119,87 @@ app.put('/user/:id', async (req, res) => {
 
 
 const testCollection = client.db('testsDB').collection('tests');
+// add test
+app.post('/tests', async (req, res) => {
+    const newTest = req.body;
+    console.log(newUser);
+    const result = await testCollection.insertOne(newTest);
+    res.send(result);
+})
+// Read tests data
+app.get('/tests', async (req, res) => {
+    const cursor = testCollection.find();
+    const result = await cursor.toArray();
+    res.send(result);
+})
+app.get('/test/:id', async (req, res) => {
+    const id = req.params.id;
+    const query = { _id: new ObjectId(id) }
+    const result = await testCollection.findOne(query);
+    res.send(result);
+})
+// delete test
+app.delete('/test/:id', async (req, res) => {
+    const id = req.params.id
+    const query = { _id: new ObjectId(id) }
+    const result = await testCollection.deleteOne(query)
+    res.send(result)
+})
 
+// booked appointment
+
+
+
+
+const bookedAppointments = client.db('appointmentsDB').collection('appointments')
+app.get('/appointments', async (req, res) => {
+    const cursor = bookedAppointments.find();
+    const result = await cursor.toArray();
+    res.send(result);
+})
+app.get('/appointments/:id', async (req, res) => {
+    const id = req.params.id;
+    const query = { _id: new ObjectId(id) }
+    const result = await bookedAppointments.findOne(query);
+    res.send(result);
+})
+// delete appointment
+app.delete('/appointments/:id', async (req, res) => {
+    const id = req.params.id
+    const query = { _id: new ObjectId(id) }
+    const result = await bookedAppointments.deleteOne(query)
+    res.send(result)
+})
+
+
+
+
+const bannerCollection = client.db('bannerDB').collection('banners')
+// post banner
+app.post('/banners', async (req, res) => {
+    const newBanner = req.body;
+    console.log(newUser);
+    const result = await bannerCollection.insertOne(newBanner);
+    res.send(result);
+})
+app.get('/banners', async (req, res) => {
+    const cursor = bannerCollection.find();
+    const result = await cursor.toArray();
+    res.send(result);
+})
+app.get('/banners/:id', async (req, res) => {
+    const id = req.params.id;
+    const query = { _id: new ObjectId(id) }
+    const result = await bannerCollection.findOne(query);
+    res.send(result);
+})
+// delete appointment
+app.delete('/banners/:id', async (req, res) => {
+    const id = req.params.id
+    const query = { _id: new ObjectId(id) }
+    const result = await bannerCollection.deleteOne(query)
+    res.send(result)
+})
 
 
 
