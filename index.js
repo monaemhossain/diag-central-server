@@ -122,7 +122,6 @@ const testCollection = client.db('testsDB').collection('tests');
 // add test
 app.post('/tests', async (req, res) => {
     const newTest = req.body;
-    console.log(newUser);
     const result = await testCollection.insertOne(newTest);
     res.send(result);
 })
@@ -132,6 +131,7 @@ app.get('/tests', async (req, res) => {
     const result = await cursor.toArray();
     res.send(result);
 })
+// read single test
 app.get('/test/:id', async (req, res) => {
     const id = req.params.id;
     const query = { _id: new ObjectId(id) }
@@ -145,11 +145,23 @@ app.delete('/test/:id', async (req, res) => {
     const result = await testCollection.deleteOne(query)
     res.send(result)
 })
+// search test
+app.get('/tests/:key', async (req, res) => {
+    const key = req.params.key.toLowerCase();
+    const regex = new RegExp(key, 'i')
+    const result = await testCollection.find(
+        {
+            $or: [
+                { title: regex }
+            ]
+        }
+    ).toArray()
+    res.send(result);
+});
+
+
 
 // booked appointment
-
-
-
 
 const bookedAppointments = client.db('appointmentsDB').collection('appointments')
 app.get('/appointments', async (req, res) => {
@@ -170,7 +182,6 @@ app.delete('/appointments/:id', async (req, res) => {
     const result = await bookedAppointments.deleteOne(query)
     res.send(result)
 })
-
 
 
 
