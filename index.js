@@ -14,18 +14,18 @@ app.use(cors({
     credentials: true
 }))
 app.use(express.json());
-const verifyToken = async(req, res, next) => {
+const verifyToken = async (req, res, next) => {
     const token = req.cookies?.token
-    if(!token){
+    if (!token) {
         return res.status(401).send("unauthorized access")
     }
 
     jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
-        if(err) {
-            return res.status(401).send({message: 'unauthorized access'})
+        if (err) {
+            return res.status(401).send({ message: 'unauthorized access' })
         }
         req.user = decoded;
-        next()        
+        next()
     })
 
 }
@@ -96,7 +96,7 @@ app.get('/user/:id', async (req, res) => {
     res.send(result);
 })
 // update user
-app.put('/user/:id', async (req, res) => {
+app.put('/update/role/:id', async (req, res) => {
     const id = req.params.id;
     const filter = { _id: new ObjectId(id) }
     const options = { upsert: true }
@@ -105,9 +105,22 @@ app.put('/user/:id', async (req, res) => {
     const user = {
         $set: {
             role: updateUser.role,
-            activeStatus: updateUser.activeStatus,
+            activeStatus: updateUser.activeStatus
+        }
+    }
+    const result = await userCollection.updateOne(filter, user, options);
+    res.send(result);
+})
+app.put('/update/user/:id', async (req, res) => {
+    const id = req.params.id;
+    const filter = { _id: new ObjectId(id) }
+    const options = { upsert: true }
+    const updateUser = req.body;
+
+    const user = {
+        $set: {
             userName: updateUser.userName,
-            userBloodGroup: updateUser.userBloodGroup,
+            imageUrl: updateUser.imageUrl
         }
     }
     const result = await userCollection.updateOne(filter, user, options);
@@ -159,11 +172,54 @@ app.get('/tests/:key', async (req, res) => {
     res.send(result);
 });
 
+// update test
+app.put('/update/test/:id', async (req, res) => {
+    const id = req.params.id;
+    const filter = { _id: new ObjectId(id) }
+    const options = { upsert: true }
+    const updateTest = req.body;
+
+    const test = {
+        $set: {
+            title: updateTest.title,
+            availableDate: updateTest.availableDate,
+            timeSlot: updateTest.timeSlot,
+            image: updateTest.image,
+            description: updateTest.description,
+            availableSlot: updateTest.availableSlot,
+            price: updateTest.price,
+        }
+    }
+    const result = await testCollection.updateOne(filter, test, options);
+    res.send(result);
+})
+// decrease availableSlot by 1 if user book an appointment
+app.put('/test/decrease/:id', async (req, res) => {
+    const id = req.params.id;
+    const filter = { _id: new ObjectId(id) }
+    const options = { upsert: true }
+    
+    const test = {
+        $inc: { availableSlot: -1 }
+    }
+    const result = await testCollection.updateOne(filter, test, options);
+    res.send(result);
+})
+
+
+
+
 
 
 // booked appointment
 
 const bookedAppointments = client.db('appointmentsDB').collection('appointments')
+// add appointment
+app.post('/appointments', async (req, res) => {
+    const newAppointment = req.body;
+    const result = await bookedAppointments.insertOne(newAppointment);
+    res.send(result);
+})
 app.get('/appointments', async (req, res) => {
     const cursor = bookedAppointments.find();
     const result = await cursor.toArray();
