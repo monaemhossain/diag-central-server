@@ -3,33 +3,36 @@ const cors = require('cors');
 require('dotenv').config()
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 
-
+const jwt = require('jsonwebtoken');
+const cookieParser = require('cookie-parser');
 
 const app = express();
 const port = process.env.PORT || 4000;
 
 // middleware
 app.use(cors({
-    origin: ['https://diag-central.web.app', 'http://localhost:5173'],
+    origin: ['https://diag-central.web.app', 'http://localhost:5173', 'https://diag-central-server.vercel.app'],
     credentials: true
 }))
 app.use(express.json());
-const verifyToken = async (req, res, next) => {
-    const token = req.cookies?.token
+app.use(cookieParser());
+
+
+const verifyToken = (req, res, next) => {
+    const token = req.cookies?.token;
     if (!token) {
-        return res.status(401).send("unauthorized access")
+        return res.status(401).send("Unauthorized access");
     }
 
     jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
         if (err) {
-            return res.status(401).send({ message: 'unauthorized access' })
+            console.error('Error verifying token:', err);
+            return res.status(401).send({ message: 'Unauthorized access' });
         }
         req.user = decoded;
-        next()
-    })
-
-}
-
+        next();
+    });
+};
 
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.hesu93o.mongodb.net`;
@@ -72,8 +75,6 @@ app.post('/logout', async (req, res) => {
 
 
 
-
-
 const userCollection = client.db('usersDB').collection('users');
 // Create user
 app.post('/users', async (req, res) => {
@@ -83,13 +84,13 @@ app.post('/users', async (req, res) => {
     res.send(result);
 })
 // Read user data
-app.get('/users', async (req, res) => {
+app.get('/users', verifyToken, async (req, res) => {
     const cursor = userCollection.find();
     const result = await cursor.toArray();
     res.send(result);
 })
 // read single user
-app.get('/user/:id', async (req, res) => {
+app.get('/user/:id', verifyToken, async (req, res) => {
     const id = req.params.id;
     const query = { _id: new ObjectId(id) }
     const result = await userCollection.findOne(query);
@@ -218,13 +219,13 @@ app.post('/appointments', async (req, res) => {
     res.send(result);
 })
 // get all appointments
-app.get('/appointments', async (req, res) => {
+app.get('/appointments', verifyToken, async (req, res) => {
     const cursor = bookedAppointments.find();
     const result = await cursor.toArray();
     res.send(result);
 })
 // get single appointment
-app.get('/appointments/:id', async (req, res) => {
+app.get('/appointments/:id',verifyToken, async (req, res) => {
     const id = req.params.id;
     const query = { _id: new ObjectId(id) }
     const result = await bookedAppointments.findOne(query);
