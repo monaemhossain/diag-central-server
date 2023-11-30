@@ -130,7 +130,7 @@ app.put('/update/user/:id', async (req, res) => {
 
 
 
-
+// tests collections
 const testCollection = client.db('testsDB').collection('tests');
 // add test
 app.post('/tests', async (req, res) => {
@@ -165,7 +165,7 @@ app.get('/tests/:key', async (req, res) => {
     const result = await testCollection.find(
         {
             $or: [
-                { title: regex }
+                { availableDate: regex }
             ]
         }
     ).toArray()
@@ -208,9 +208,6 @@ app.put('/test/decrease/:id', async (req, res) => {
 
 
 
-
-
-
 // booked appointment
 
 const bookedAppointments = client.db('appointmentsDB').collection('appointments')
@@ -220,11 +217,13 @@ app.post('/appointments', async (req, res) => {
     const result = await bookedAppointments.insertOne(newAppointment);
     res.send(result);
 })
+// get all appointments
 app.get('/appointments', async (req, res) => {
     const cursor = bookedAppointments.find();
     const result = await cursor.toArray();
     res.send(result);
 })
+// get single appointment
 app.get('/appointments/:id', async (req, res) => {
     const id = req.params.id;
     const query = { _id: new ObjectId(id) }
@@ -238,6 +237,22 @@ app.delete('/appointments/:id', async (req, res) => {
     const result = await bookedAppointments.deleteOne(query)
     res.send(result)
 })
+// search appointment by email
+app.get('/search/appointments/:key', async (req, res) => {
+    const key = req.params.key.toLowerCase();
+    const regex = new RegExp(key, 'i')
+    const result = await bookedAppointments.find(
+        {
+            $or: [
+                { userEmail: regex }
+            ]
+        }
+    ).toArray()
+    res.send(result);
+});
+
+
+
 
 
 
@@ -245,7 +260,6 @@ const bannerCollection = client.db('bannerDB').collection('banners')
 // post banner
 app.post('/banners', async (req, res) => {
     const newBanner = req.body;
-    console.log(newUser);
     const result = await bannerCollection.insertOne(newBanner);
     res.send(result);
 })
@@ -267,9 +281,40 @@ app.delete('/banners/:id', async (req, res) => {
     const result = await bannerCollection.deleteOne(query)
     res.send(result)
 })
+// set banner on or off
+app.put('/banners/update/:id', async (req, res) => {
+    const id = req.params.id;
+    const filter = { _id: new ObjectId(id) }
+    const options = { upsert: true }
+    const bannerStatus = req.body;
 
+    const banner = {
+        $set: {
+            isActive: bannerStatus.isActive
+        }
+    }
+    const result = await bannerCollection.updateOne(filter, banner, options);
+    res.send(result);
+})
+app.put('/banners/resetActive', async (req, res) => {
+    const filter = {}
+    const options = { upsert: true }
+    const banners = {
+        $set: {
+            isActive: false
+        }
+    }
+    const result = await bannerCollection.updateMany( filter, banners, options);
+    res.send(result);
+})
 
-
+// get blogs
+const blogCollection = client.db('blogDB').collection('blogs')
+app.get('/blogs', async (req, res) => {
+    const cursor = blogCollection.find();
+    const result = await cursor.toArray();
+    res.send(result);
+})
 
 
 
